@@ -7,6 +7,10 @@ public class kinematicArrive : MonoBehaviour
 {
     // Player utilizes movement as a Unity AI Agent
     NavMeshAgent player;
+    [SerializeField] NavMeshAgent player2;
+    [SerializeField] NavMeshAgent player3;
+    [SerializeField] NavMeshAgent player4;
+    [SerializeField] GameObject obstacle;
 
     // Boolean to determine whether player can move
     private bool moving;
@@ -36,7 +40,12 @@ public class kinematicArrive : MonoBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))
             {
                 // Tell the agent to path to the destination using the Agent and Navmesh
+                Vector3 startPos = transform.position;
+
                 player.SetDestination(hit.point);
+                moveToPoint(hit.point, startPos, player2, 2);
+                moveToPoint(hit.point, startPos, player3, -2);
+                moveToPoint(hit.point, startPos, player4, -4);
             }
         }
         // If the player is moving
@@ -51,5 +60,40 @@ public class kinematicArrive : MonoBehaviour
                 moving = false;
             }
         }
+
+        if (Input.GetMouseButton(1))
+        {
+            RaycastHit hit;
+            //Shoot a raycast from the main camera to the mouse position relative to the plane
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            // If the ray hit something
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+            {
+                Instantiate(obstacle, new Vector3(hit.point.x, 1, hit.point.z), Quaternion.identity);
+            }
+        }
+    }
+
+    void moveToPoint(Vector3 pos, Vector3 startPos, NavMeshAgent agent, int posMod)
+    {
+        float modifier = 0f;
+        Vector3 targetDir = pos - startPos;
+        float angle = Vector3.Angle(targetDir, transform.forward);
+        float angleMultiplier = angle / 180;
+
+        float dist2 = Vector3.Distance(agent.gameObject.transform.position, pos);
+        float dist1 = Vector3.Distance(startPos, pos);
+
+        if (dist1 <= dist2)
+        {
+            modifier = 1f;
+        }
+
+        Vector3 targetPos = new Vector3(pos.x + (posMod - angleMultiplier) - modifier, 1f, pos.z - (posMod - angleMultiplier) - modifier);
+
+        
+
+        Debug.Log(angle);
+        agent.SetDestination(targetPos);
     }
 }
